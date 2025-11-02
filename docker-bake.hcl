@@ -14,4 +14,5 @@ target "pa11y" {
     attest = [ "type=provenance,mod=max","type=sbom"]
     cache-from = [ "type=registry,ref=${IMAGE}:buildcache" ]
     cache-to = [ "type=registry,ref=${IMAGE}:buildcache,mod=max" ]
+    platforms = [ "linux/amd64","linux/arm64" ]
 }
