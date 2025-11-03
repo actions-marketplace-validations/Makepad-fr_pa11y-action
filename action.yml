@@ -131,12 +131,11 @@ runs:
 
         # Execute Pa11y inside the container
         set +e
-        docker "${DOCKER_ARGS[@]}" "$INPUT_DOCKER_IMAGE" \
+        docker "${DOCKER_ARGS[@]}" \
+          -e "PUPPETEER_ARGS=--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage" \
+          "$INPUT_DOCKER_IMAGE" \
           pa11y "$INPUT_URL" \
           --reporter "$INPUT_REPORTER" \
-          --chrome-arg "--no-sandbox" \
-          --chrome-arg "--disable-setuid-sandbox" \
-          --chrome-arg "--disable-dev-shm-usage" \
           "${FLAGS[@]}" \
           "${EXTRA_ARR[@]}" \
           > "$REPORT_PATH"
