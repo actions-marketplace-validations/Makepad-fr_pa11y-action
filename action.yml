@@ -162,13 +162,21 @@ runs:
           echo "Report file not found or empty: $REPORT_PATH" >&2
           exit 1
         fi
-        # Count issues for array-form or object-with-issues-form
-        if COUNT=$(jq -r 'if type=="array" then length elif type=="object" and has("issues") then .issues|length else 0 end' "$REPORT_PATH" 2>/dev/null); then
-          :
-        else
-          echo "Warning: Report is not valid JSON; skipping threshold check." >&2
+
+        # Extract pure JSON starting at the first { or [ in case the tool prints banners/warnings to stdout
+        JSON_REPORT="${REPORT_PATH%.json}.clean.json"
+        awk 'found{print} /[\[{]/{found=1; print}' "$REPORT_PATH" > "$JSON_REPORT" || true
+
+        if ! jq -e . "$JSON_REPORT" >/dev/null 2>&1; then
+          echo "Warning: Report is not valid JSON even after cleanup: $JSON_REPORT" >&2
+          echo "--- Begin sniff (first 200 chars) ---"
+          head -c 200 "$REPORT_PATH" || true
+          echo "\n--- End sniff ---"
           exit 0
         fi
+
+        # Count issues for array-form or object-with-issues-form
+        COUNT=$(jq -r 'if type=="array" then length elif type=="object" and has("issues") then .issues|length else 0 end' "$JSON_REPORT")
         echo "Found $COUNT issues (threshold ${INPUT_THRESHOLD})."
         if [[ ${INPUT_THRESHOLD} -ge 0 && $COUNT -gt ${INPUT_THRESHOLD} ]]; then
           echo "Pa11y issues exceed threshold (${INPUT_THRESHOLD})." >&2
@@ -187,4 +195,12 @@ runs:
         if [[ "$EXIT_CODE" -ne 0 ]]; then
           echo "Pa11y exited with non-zero status: $EXIT_CODE" >&2
           exit "$EXIT_CODE"
-        fi
+
+    - name: Upload Pa11y report artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: pa11y-report
+        path: |
+          ${{ steps.run-pa11y.outputs.report_path }}
+          ${{ steps.run-pa11y.outputs.report_path && format('{0}.clean.json', steps.run-pa11y.outputs.report_path) || '' }}
+        if-no-files-found: warn
