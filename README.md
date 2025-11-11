@@ -2,7 +2,7 @@
 
 # Pa11y Action
 
-Run automated accessibility audits with [Pa11y](https://pa11y.org/) using the `makepad/pa11y` Docker image.
+Run automated accessibility audits with [Pa11y](https://pa11y.org/) in your Github actions.
 
 ## Usage
 
@@ -39,7 +39,7 @@ jobs:
 ## Inputs
 
 | Name | Required | Default | Description |
-|------|-----------|----------|-------------|
+|------:|:-----------:|:----------:|:-------------:|
 | `url` | ✅ | — | URL to test |
 | `standard` | ❌ | WCAG2AA | WCAG level |
 | `threshold` | ❌ | 0 | Max allowed issues |
